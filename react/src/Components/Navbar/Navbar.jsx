@@ -57,7 +57,7 @@ const Navbar = () => {
             <div className='flex items-center gap-x-5'>
                 <div className='md:flex p-1 border-2 border-orange-500 rounded-full hidden'>
                     <input type="text" name="text" id="text" placeholder='Search...' autoComplete='off' className='flex-1 h-[7vh] px-3 focus:outline-none'/>
-                    <button className='bg-linear-to-b from-orange-400 to-orange-500 text-white w-10 h-10 rounded-full flex justify-center items-center text-xl'><IoSearch /></button>
+                    <button className='bg-linear-to-b from-orange-400 to-orange-500 text-white w-11 h-11 rounded-full flex justify-center items-center text-xl'><IoSearch /></button>
                 </div>
                 <a href='#' className='text-zinc-800 text-2xl'>
                     <GoHeartFill />
