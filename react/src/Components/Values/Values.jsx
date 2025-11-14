@@ -1,7 +1,9 @@
 import React from 'react'
 import Heading from '../Heading/Heading'
-import { FaHeart, FaLeaf, FaShieldAlt, FaSeedling } from "react-icons/fa";
-import Basket from '../../Assets/basket-full-vegetables.png' // keep your image
+import { FaHeart, FaShieldAlt, FaSeedling } from "react-icons/fa";
+import { MdOutlineBakeryDining } from "react-icons/md";
+import { MdWorkspacePremium } from "react-icons/md";
+import Basket from '../../Assets/basket-full-vegetables.png' 
 
 const Values = () => {
 
@@ -71,13 +73,13 @@ const value = [
         id: 2, 
         title: 'Freshly Baked', 
         para: 'Our cakes, pastries, and breads are baked daily to ensure maximum freshness and flavor.', 
-        icon: <FaLeaf/> 
+        icon: <MdOutlineBakeryDining /> 
     },
     { 
         id: 3, 
         title: 'Premium Ingredients', 
         para: 'We use only the finest ingredients—real butter, fresh fruits, and high-quality chocolate in every creation.', 
-        icon: <FaShieldAlt/> 
+        icon: <MdWorkspacePremium /> 
     },
     { 
         id: 4, 
