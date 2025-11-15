@@ -3,10 +3,10 @@ import Heading from '../Heading/Heading'
 import { useState } from 'react';
 import ProductList from '../ProductList/ProductList';
 import Cards from '../Cards/Cards';
-import Button from '../Button/Button';
+import { Link } from 'react-router-dom';
 
 const Products = () => {
-    // Updated categories for bakery/dessert theme
+  
     const categories = ['All', 'Cakes', 'Pastries', 'Cookies', 'Breads'];
     const [activeTab, setActiveTab] = useState('All')
 
@@ -45,7 +45,7 @@ const Products = () => {
             </div>
 
             <div className='mt-15 mx-auto w-fit'>
-                <Button content="View All"/>
+                <Link to="/AllProducts" className='bg-gradient-to-b from-rose-400 to-rose-500 text-white px-8 py-3 rounded-lg md:text-lg text-md hover:scale-105 hover:to-rose-600 transition-all duration-300 cursor-pointer'>View All</Link>
             </div>
 
         </div>
