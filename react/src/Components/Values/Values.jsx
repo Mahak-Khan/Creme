@@ -3,7 +3,7 @@ import Heading from '../Heading/Heading'
 import { FaHeart, FaShieldAlt, FaSeedling } from "react-icons/fa";
 import { MdOutlineBakeryDining } from "react-icons/md";
 import { MdWorkspacePremium } from "react-icons/md";
-import Basket from '../../Assets/basket-full-vegetables.png' 
+import Basket from '../../Assets/basket-full-baked.png' 
 
 const Values = () => {
 
@@ -47,7 +47,7 @@ const Values = () => {
 
                     {/* center */}  
                     <div className='md:flex w-1/2 hidden'>
-                        <img src={Basket}/>
+                        <img src={Basket} className='w-full h-full object-contain'/>
                     </div>
 
                     {/* right values*/}

@@ -1,204 +1,205 @@
-import Butter from '../../Assets/butter.png'
-import Strawberry from '../../Assets/strawberry.png'
-import Eggs from '../../Assets/eggs.png'
-import Cabbage from '../../Assets/cabbage.png'
-import Eggplant from '../../Assets/eggplant.png'
-import Shrimp from '../../Assets/shrimp.png'
-import Kiwi from '../../Assets/kiwi.png'
-import Capsicum from '../../Assets/capsicum.png'
-import Broccoli from '../../Assets/broccoli.png'
-import Yogurt from '../../Assets/yogurt.png'
-import Beef from '../../Assets/beef.png'
-import ChickenBreast from '../../Assets/chicken-breast.png'
-import Kale from '../../Assets/kale.png'
-import Cheese from '../../Assets/cheese.png'
-import CondensedMilk from '../../Assets/condensed-milk.png'
-import Salmon from '../../Assets/salmon.png'
-import Banana from '../../Assets/banana.png'
-import Milk from '../../Assets/milk.png'
-import Pineapple from '../../Assets/pineapple.png'
-import Tofu from '../../Assets/tofu.png'
-import Tilapia from '../../Assets/tilapia.png'
-import SliceCheese from '../../Assets/slice-cheese.png'
-import RicottaCheese from '../../Assets/ricotta-cheese.png'
-import Grapes from '../../Assets/grapes.png'
-import Lettuce from '../../Assets/lettuce.png'
+import SweetBreadBun from '../../Assets/Sweet Bread Bun.png'
+import ChocolateGarnishedCake from '../../Assets/Chocolate Garnished Cake.png'
+import Donut from '../../Assets/Donut.png'
+import ChocolatePastery from '../../Assets/Chocolate Pastery.png'
+import StrawberryPastery from '../../Assets/Strawberry Pastery.png'
+import ChocoCookie from '../../Assets/Choco Cookie.png'
+import FruitCakeCake from '../../Assets/Fruit Cake.png'
+import FruitPastery from '../../Assets/Fruit Pastery.png'
+import ChocoPastery from '../../Assets/Choco Pastery.png'
+import SweetBun from '../../Assets/Sweet Bun.png'
+import CreamCookie from '../../Assets/Cream Cookie.png'
+import FlavouredCookie from '../../Assets/Flavoured Cookie.png'
+import PistaPastery from '../../Assets/Pista Pastery.png'
+import Breads from '../../Assets/Breads.png'
+import ChocoBread from '../../Assets/Choco Bread.png'
+import BrownCookie from '../../Assets/Brown Cookie.png'
+import RedVelvetCake from '../../Assets/Red Velvet Cake.png'
+import CheeseBun from '../../Assets/Cheese Bun.png'
+import FruitCake from '../../Assets/Fruit Cake.png'
+import ButterBun from '../../Assets/Butter Bun.png'
+import SquareCookie from '../../Assets/Square Cookie.png'
+import BrownBread from '../../Assets/Brown Bread.png'
+import BreadBun from '../../Assets/Bread Bun.png'
+import CupCake from '../../Assets/Cup Cake.png'
+import BrownPastery from '../../Assets/Brown Pastery.png'
 
 
 const products = [
     {
         id: 1,
-        name: 'Strawberry',
-        price: 3.0,
-        category: 'Fruits',
-        image: Strawberry
+        name: 'Chocolate Garnished Cake',
+        price: 250,
+        category: 'Cakes',
+        image: ChocolateGarnishedCake
     },
     {
         id: 2,
-        name: 'Butter',
-        price: 3.5,
-        category: 'Dairy',
-        image: Butter
+        name: 'Sweet Bread Bun',
+        price: 75,
+        category: 'Breads',
+        image: SweetBreadBun
     },
     {
         id: 3,
-        name: 'Eggs',
-        price: 2.05,
-        category: 'Dairy',
-        image: Eggs
+        name: 'Donut',
+        price: 40,
+        category: 'Breads',
+        image: Donut
     },
     {
         id: 4,
-        name: 'Cabbage',
-        price: 3.0,
-        category: 'Vegetables',
-        image: Cabbage
+        name: 'Chocolate Pastery',
+        price: 25,
+        category: 'Pastries',
+        image: ChocolatePastery
     },
     {
         id: 5,
-        name: 'Eggplant',
-        price: 4.0,
-        category: 'Vegetables',
-        image: Eggplant
+        name: 'Strawberry Pastery',
+        price: 30,
+        category: 'Pastries',
+        image: StrawberryPastery
     },
     {
         id: 6,
-        name: 'Shrimp',
-        price: 3.5, category: 'SeaFood',
-        image: Shrimp
+        name: 'Choco Cookie',
+        price: 20, 
+        category: 'Cookies',
+        image: ChocoCookie
     },
     {
         id: 7,
-        name: 'Kiwi',
-        price: 2.05,
-        category: 'Fruits',
-        image: Kiwi
+        name: 'Fruit Cake Cake',
+        price: 400,
+        category: 'Cakes',
+        image: FruitCakeCake
     },
     {
         id: 8,
-        name: 'Green Capsicum',
-        price: 4.0,
-        category: 'Vegetables',
-        image: Capsicum
+        name: 'Fruit Pastery',
+        price: 30,
+        category: 'Pastries',
+        image: FruitPastery
     },
     {
         id: 9,
-        name: 'Broccoli',
-        price: 2.0,
-        category: 'Vegetables',
-        image: Broccoli
+        name: 'Choco Pastery',
+        price: 25,
+        category: 'Pastries',
+        image: ChocoPastery
     },
     {
         id: 10,
-        name: 'Yogurt',
-        price: 3.0,
-        category: 'Dairy',
-        image: Yogurt
+        name: 'Sweet Bun',
+        price: 50,
+        category: 'Breads',
+        image: SweetBun
     },
     {
         id: 11,
-        name: 'Beef',
-        price: 8.0,
-        category: 'Meat',
-        image: Beef
+        name: 'Cream Cookie',
+        price: 20,
+        category: 'Cookies',
+        image: CreamCookie
     },
     {
         id: 12,
-        name: 'Chicken Breast',
-        price: 7.0,
-        category: 'Meat',
-        image: ChickenBreast
+        name: 'Flavoured Cookie',
+        price: 35,
+        category: 'Cookies',
+        image: FlavouredCookie
     },
     {
         id: 13,
-        name: 'Kale Leaves',
-        price: 3.0,
-        category: 'Vegetables',
-        image: Kale
+        name: 'Pista Pastery',
+        price: 40,
+        category: 'Pastries',
+        image: PistaPastery
     },
     {
         id: 14,
-        name: 'Mozzarella Cheese',
-        price: 7.0,
-        category: 'Dairy',
-        image: Cheese
+        name: 'Breads',
+        price: 22,
+        category: 'Breads',
+        image: Breads
     },
     {
         id: 15,
-        name: 'Condensed Milk',
-        price: 5.0,
-        category: 'Dairy',
-        image: CondensedMilk
+        name: 'Choco Bread',
+        price: 35,
+        category: 'Breads',
+        image: ChocoBread
     },
     {
         id: 16,
-        name: 'Salmon Filet ',
-        price: 4.0,
-        category: 'SeaFood',
-        image: Salmon
+        name: 'Brown Cookie',
+        price: 30,
+        category: 'Cookies',
+        image: BrownCookie
     },
     {
         id: 17,
-        name: 'Banana ',
-        price: 2.0,
-        category: 'Fruits',
-        image: Banana
+        name: 'Red Velvet Cake',
+        price: 450,
+        category: 'Cakes',
+        image: RedVelvetCake
     },
     {
         id: 18,
-        name: 'Milk Bottle (3)',
-        price: 8.0,
-        category: 'Dairy',
-        image: Milk
+        name: 'Cheese Bun',
+        price: 55,
+        category: 'Breads',
+        image:CheeseBun
     },
     {
         id: 19,
-        name: 'PineApple',
-        price: 5.0,
-        category: 'Fruits',
-        image: Pineapple
+        name: 'Fruit Cake',
+        price: 350,
+        category: 'Cakes',
+        image: FruitCake
     },
     {
         id: 20,
-        name: 'Tofu Cubes',
-        price: 4.0,
-        category: 'Dairy',
-        image: Tofu
+        name: 'Butter Bun',
+        price: 45,
+        category: 'Breads',
+        image: ButterBun
     },
     {
         id: 21,
-        name: 'Tilapia Fish',
-        price: 3.0,
-        category: 'SeaFood',
-        image: Tilapia
+        name: 'Square Cookie',
+        price: 30,
+        category: 'Cookies',
+        image: SquareCookie
     },
     {
         id: 22,
-        name: 'Slice Cheese',
-        price: 5.0,
-        category: 'Dairy',
-        image: SliceCheese
+        name: 'Brown Bread',
+        price: 40,
+        category: 'Breads',
+        image: BrownBread
     },
     {
         id: 23,
-        name: 'Ricotta Cheese',
-        price: 7.0,
-        category: 'Dairy',
-        image: RicottaCheese
+        name: 'Bread Bun',
+        price: 60,
+        category: 'Breads',
+        image: BreadBun
     },
     {
         id: 24,
-        name: 'Grapes',
-        price: 3.0,
-        category: 'Fruits',
-        image: Grapes
+        name: 'Cup Cake',
+        price: 50,
+        category: 'Cakes',
+        image: CupCake
     },
     {
         id: 25,
-        name: 'Lettuce Leaf',
-        price: 3.0,
-        category: 'Vegetables',
-        image: Lettuce
+        name: 'Brown Pastery',
+        price: 20,
+        category: 'Pastries',
+        image: BrownPastery
     },
 ];
 

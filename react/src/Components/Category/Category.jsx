@@ -1,8 +1,8 @@
 import React from 'react'
 import Heading from '../Heading/Heading'
-import FruitsCat from '../../Assets/fruits-and-veggies.png'
-import SeaFoodCat from '../../Assets/meat-and-seafood.png'
-import DairyCat from '../../Assets/dairy-and-eggs.png'
+import FruitsCat from '../../Assets/cake-and-pastery.png'
+import SeaFoodCat from '../../Assets/bread-and-buns.png'
+import DairyCat from '../../Assets/cookie-and-biscuits.png'
 import Button from '../Button/Button'
 
 const Category = () => {
@@ -17,7 +17,7 @@ const Category = () => {
                 {/* Card Image */}
 
                 <div className='w-full min-h-[30vh] relative -mb-10'>
-                    <img src={card.image} className='absolute bottom-0'/>
+                    <img src={card.image} className='w-full h-full object-contain absolute bottom-0'/>
                 </div>
 
                 {/* Card Content */}
