@@ -1,5 +1,5 @@
 import SweetBreadBun from '../../Assets/Sweet Bread Bun.png'
-import ChocolateGarnishedCake from '../../Assets/Chocolate Garnished Cake.png'
+import GarnishedCake from '../../Assets/Garnished Cake.png'
 import Donut from '../../Assets/Donut.png'
 import ChocolatePastery from '../../Assets/Chocolate Pastery.png'
 import StrawberryPastery from '../../Assets/Strawberry Pastery.png'
@@ -28,10 +28,10 @@ import BrownPastery from '../../Assets/Brown Pastery.png'
 const products = [
     {
         id: 1,
-        name: 'Chocolate Garnished Cake',
+        name: 'Garnished Cake',
         price: 250,
         category: 'Cakes',
-        image: ChocolateGarnishedCake
+        image: GarnishedCake
     },
     {
         id: 2,
