@@ -5,6 +5,7 @@ import { IoSearch } from "react-icons/io5";
 import { TbMenu2 } from "react-icons/tb";
 import { useState } from 'react';
 import { TbMenu3 } from "react-icons/tb";
+import {Link} from 'react-router-dom'
 
 const Navbar = () => {
 
@@ -31,9 +32,9 @@ const Navbar = () => {
             
             {/* LOGO */ }
 
-            <a href='#' className='text-3xl font-bold'>
+            <Link to='/' className='text-3xl font-bold'>
                 Cr<span className='text-rose-500'>乇</span>me
-            </a>
+            </Link>
 
             {/* Desktop Menu */ }
 

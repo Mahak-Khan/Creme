@@ -1,9 +1,11 @@
 import React from 'react'
+import CategoryPage from '../CategoryPage/CategoryPage'
+import BgCookieBiscuits from '../../Assets/CookieBiscuits-banner.jpg'
 
 const Cookies = () => {
   return (
     <div>
-      <h1>Hi cookies there !</h1>
+      <CategoryPage title='Cookies & Biscuits' bgImage={BgCookieBiscuits} categories={['Cookies']}/>
     </div>
   )
 }
