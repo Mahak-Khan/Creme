@@ -83,18 +83,21 @@ const Navbar = () => {
                 {/*Mobile Menu */}
 
                 <ul className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xlrounded-xl p-10 items-center gap-x-15 md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ""}`}>
-                    <li>
-                        <a href='#' className='font-semibold tracking-wider text-rose-500'>Home</a>
-                    </li>
-                    <li>
-                        <a href='#' className='font-semibold tracking-wider text-zinc-800 hover:text-rose-500'>About Us</a>
-                    </li>
-                    <li>
-                        <a href='#' className='font-semibold tracking-wider text-zinc-800 hover:text-rose-500'>Process</a>
-                    </li>
-                    <li>
-                        <a href='#' className='font-semibold tracking-wider text-zinc-800 hover:text-rose-500'>Contact Us</a>
-                    </li>
+                   <NavLink to="/" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>
+                        Home
+                    </NavLink>
+
+                    <NavLink to="/About" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>
+                        About
+                    </NavLink>
+
+                    <NavLink to="/Process" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>
+                        Process
+                    </NavLink>
+
+                    <NavLink to="/Contact" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>
+                        Contact Us
+                    </NavLink>
                     <li className='flex p-1 border-2 border-rose-500 rounded-full md:hidden'>
                         <input type="text" name="text" id="text" placeholder='Search...' autoComplete='off' className='flex-1 h-[5vh] px-3 focus:outline-none' />
                         <button className='bg-linear-to-b from-rose-400 to-rose-500 text-white w-10 h-10 rounded-full flex justify-center items-center text-xl'><IoSearch /></button>
