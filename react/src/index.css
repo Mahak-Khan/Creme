@@ -3,7 +3,3 @@
 *{
     user-select: none  ;
 }
-body {
-  @apply bg-zinc-800;
-  margin: 0;
-}
