@@ -102,7 +102,7 @@ const Cards = ({ id, image, name, price, onWishlistChange, onCartChange, isCartP
             <span className="text-white text-xl">✖</span>
           ) : (
             <p className={`${inCart ? "text-zinc-300" : "text-white"} text-xl`}>
-              {inCart ? "Remove" : "Add to Cart"}
+              {inCart ? "Added !" : "Add to Cart"}
             </p>
           )}
         </button>
