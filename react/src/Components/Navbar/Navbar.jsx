@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { GoHeartFill } from "react-icons/go";
 import { HiShoppingBag } from "react-icons/hi2";
 import { IoSearch } from "react-icons/io5";
-import { TbMenu2, TbMenu3 } from "react-icons/tb";
+import { TbMenu2, TbMenu3, TbCameraSearch } from "react-icons/tb";
 import { Link, NavLink, useNavigate } from 'react-router-dom';
 import ProductList from '../ProductList/ProductList';
 import clsx from 'clsx';
@@ -20,12 +20,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const toggleMenu = () => setShowMenu(!showMenu);
 
-  // ----------------- Wishlist Count -----------------
+  // Wishlist Count
   const updateWishlistCount = () => {
     const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     setWishlistCount(wishlist.length);
-
-    // Animate heart
     setAnimateWishlist(true);
     setTimeout(() => setAnimateWishlist(false), 300);
   };
@@ -37,25 +35,22 @@ const Navbar = () => {
     return () => window.removeEventListener("wishlistUpdated", sync);
   }, []);
 
-  // ----------------- Cart Count -----------------
+  // Cart Count
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartCount(cart.length);
-
-    // Animate cart icon
     setAnimateCart(true);
     setTimeout(() => setAnimateCart(false), 300);
   };
 
- useEffect(() => {
+  useEffect(() => {
     updateCartCount();
     const sync = () => updateCartCount();
-    window.addEventListener("cartUpdated", sync); // ✅ fixed
+    window.addEventListener("cartUpdated", sync);
     return () => window.removeEventListener("cartUpdated", sync);
-}, []);
+  }, []);
 
-
-  // ----------------- Search Logic -----------------
+  // Search Logic
   const handleSearch = (e) => {
     e.preventDefault();
     if (query.trim() !== '') {
@@ -105,8 +100,14 @@ const Navbar = () => {
 
         {/* Search + Icons */}
         <div className='flex items-center gap-x-5 relative'>
-          {/* Search */}
-          <div className='md:flex p-1 border-2 border-rose-500 rounded-full hidden'>
+
+          {/* Desktop Search */}
+          <div className='md:flex p-1 border-2 border-rose-500 rounded-full hidden items-center gap-x-2'>
+            {/* Camera Icon */}
+            <button className='text-2xl text-rose-500 p-1 flex items-center justify-center'>
+              <TbCameraSearch />
+            </button>
+
             <input
               type="text"
               value={query}
@@ -115,6 +116,7 @@ const Navbar = () => {
               autoComplete='off'
               className='flex-1 h-[7vh] px-3 focus:outline-none'
             />
+
             <button onClick={handleSearch} className='bg-linear-to-b from-rose-400 to-rose-500 text-white w-11 h-11 rounded-full flex justify-center items-center text-xl cursor-pointer'>
               <IoSearch />
             </button>
@@ -167,19 +169,24 @@ const Navbar = () => {
           <NavLink to="/About" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
           <NavLink to="/Process" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Process</NavLink>
           <NavLink to="/Contact" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
-          <li className='flex p-1 border-2 border-rose-500 rounded-full md:hidden'>
+
+          {/* Mobile Camera + Search */}
+          <div className='flex items-center gap-x-2 w-full'>
+            <button className='text-2xl text-rose-500 p-1 flex items-center justify-center'>
+              <TbCameraSearch />
+            </button>
             <input
               type="text"
               value={query}
               onChange={handleChange}
               placeholder='Search...'
               autoComplete='off'
-              className='flex-1 h-[5vh] px-3 focus:outline-none'
+              className='flex-1 h-[5vh] px-3 focus:outline-none rounded-full border border-rose-500'
             />
             <button onClick={handleSearch} className='bg-linear-to-b from-rose-400 to-rose-500 text-white w-10 h-10 rounded-full flex justify-center items-center text-xl'>
               <IoSearch />
             </button>
-          </li>
+          </div>
         </ul>
       </nav>
     </header>
