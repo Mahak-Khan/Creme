@@ -4,8 +4,8 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  base: './', // ensures assets are loaded correctly after deployment
+  base: './',
   server: {
-    allowedHosts: ['matchlessly-unflinching-caiden.ngrok-free.dev'], // allow all LocalTunnel hosts
+    allowedHosts: ['matchlessly-unflinching-caiden.ngrok-free.dev'], 
   }
 })

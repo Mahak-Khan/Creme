@@ -1,77 +1,60 @@
 import Tesseract from "tesseract.js";
 
-const preprocessAndGetLineImages = async (file) => {
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.src = URL.createObjectURL(file);
+const preprocessImage = (img) => {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = img.width;
+  canvas.height = img.height;
 
-    img.onload = () => {
-      const mat = cv.imread(img);
-      cv.cvtColor(mat, mat, cv.COLOR_RGBA2GRAY, 0);
+  ctx.drawImage(img, 0, 0);
 
-      // ⭐ Adaptive threshold helps on notebooks & shadows
-      cv.adaptiveThreshold(
-        mat,
-        mat,
-        255,
-        cv.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv.THRESH_BINARY_INV,
-        25,
-        10
-      );
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
 
-      // ⭐ Connect letters into lines
-      const kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(30, 3));
-      cv.dilate(mat, mat, kernel);
-
-      const contours = new cv.MatVector();
-      const hierarchy = new cv.Mat();
-      cv.findContours(mat, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
-
-      let lineImages = [];
-
-      for (let i = 0; i < contours.size(); i++) {
-        const rect = cv.boundingRect(contours.get(i));
-        if (rect.width > 50 && rect.height > 10) {  // filter noise
-          const line = cv.imread(img)
-            .roi(rect); // crop region
-          lineImages.push({ img: line, y: rect.y });
-        }
-      }
-
-      // Sort by vertical position (reading order)
-      lineImages.sort((a, b) => a.y - b.y);
-
-      resolve(lineImages);
-    };
-  });
-};
-
-const tesseractOCR = async (mat) => {
-  const dataURL = cv.imencode(".png", mat).toString("base64");
-  const imgSrc = `data:image/png;base64,${dataURL}`;
-
-  try {
-    const { data } = await Tesseract.recognize(imgSrc, "eng", {
-      logger: () => {},
-    });
-    return data.text.trim();
-  } catch {
-    return "";
+  // Convert to grayscale
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
+    data[i] = data[i + 1] = data[i + 2] = gray;
   }
+
+  const threshold = 150;
+  for (let i = 0; i < data.length; i += 4) {
+    const val = data[i] > threshold ? 255 : 0;
+    data[i] = data[i + 1] = data[i + 2] = val;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas.toDataURL();
 };
 
-export const extractTextFromImage = async (file) => {
+
+export const extractHandwrittenText = async (file) => {
   if (!file) return "";
 
-  const lineImages = await preprocessAndGetLineImages(file);
+  const img = new Image();
+  img.src = URL.createObjectURL(file);
 
-  let finalText = "";
+  return new Promise((resolve, reject) => {
+    img.onload = async () => {
+      try {
+        const preprocessedImage = preprocessImage(img);
 
-  for (const line of lineImages) {
-    const text = await tesseractOCR(line.img);
-    if (text) finalText += text + "\n";
-  }
+        const { data } = await Tesseract.recognize(preprocessedImage, "eng_best", {
+          logger: (m) => console.log(m),
+          tessedit_char_whitelist:
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,!?- "
+        });
 
-  return finalText.trim();
+        resolve(data.text.trim());
+      } catch (err) {
+        console.error("OCR Error:", err);
+        resolve("");
+      }
+    };
+
+    img.onerror = (err) => {
+      console.error("Image failed to load:", err);
+      reject(err);
+    };
+  });
 };
