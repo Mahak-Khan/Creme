@@ -1,5 +1,7 @@
+// src/Components/ImgTxt/ImgTxt.js
 import Tesseract from "tesseract.js";
 
+// Preprocess image for better OCR accuracy
 const preprocessImage = (img) => {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -11,12 +13,13 @@ const preprocessImage = (img) => {
   const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const data = imageData.data;
 
-  // Convert to grayscale
+  // Grayscale conversion
   for (let i = 0; i < data.length; i += 4) {
     const gray = data[i] * 0.3 + data[i + 1] * 0.59 + data[i + 2] * 0.11;
     data[i] = data[i + 1] = data[i + 2] = gray;
   }
 
+  // Simple thresholding
   const threshold = 150;
   for (let i = 0; i < data.length; i += 4) {
     const val = data[i] > threshold ? 255 : 0;
@@ -27,8 +30,8 @@ const preprocessImage = (img) => {
   return canvas.toDataURL();
 };
 
-
-export const extractHandwrittenText = async (file) => {
+// Named export
+export const extractTextFromImage = async (file) => {
   if (!file) return "";
 
   const img = new Image();
