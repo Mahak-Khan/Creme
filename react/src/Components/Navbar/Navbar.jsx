@@ -7,7 +7,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import ProductList from '../ProductList/ProductList';
 import clsx from 'clsx';
 import { triggerCamera } from '../CameraAccess/CameraAccess';
-import { extractTextFromImage } from '../ImgTxt/ImgTxt'; 
+import { extractTextFromImage } from '../visionOCR/visionOCR';   // <-- OCR IMPORT
 
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -18,15 +18,13 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
   const [animateWishlist, setAnimateWishlist] = useState(false);
   const [animateCart, setAnimateCart] = useState(false);
-  const [loading, setLoading] = useState(false); // OCR loading state
-  const [ocrDebug, setOcrDebug] = useState(""); // For mobile debug display
+  const [loading, setLoading] = useState(false);  // <-- Loader for OCR
 
   const navigate = useNavigate();
   const cameraInputRef = useRef();
 
   const toggleMenu = () => setShowMenu(!showMenu);
 
-  // Wishlist Count
   const updateWishlistCount = () => {
     const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     setWishlistCount(wishlist.length);
@@ -41,7 +39,6 @@ const Navbar = () => {
     return () => window.removeEventListener("wishlistUpdated", sync);
   }, []);
 
-  // Cart Count
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartCount(cart.length);
@@ -56,12 +53,12 @@ const Navbar = () => {
     return () => window.removeEventListener("cartUpdated", sync);
   }, []);
 
-  // Search Logic
   const handleSearch = (e) => {
     e?.preventDefault();
     if (query.trim() !== '') {
       navigate(`/search?query=${encodeURIComponent(query)}`);
       setSuggestions([]);
+      setShowMenu(false);
     }
   };
 
@@ -69,6 +66,7 @@ const Navbar = () => {
     const value = e.target.value;
     setQuery(value);
     if (!value) return setSuggestions([]);
+
     const filtered = ProductList.filter(p =>
       p.name.toLowerCase().includes(value.toLowerCase())
     );
@@ -79,6 +77,7 @@ const Navbar = () => {
     setQuery(name);
     navigate(`/search?query=${encodeURIComponent(name)}`);
     setSuggestions([]);
+    setShowMenu(false);
   };
 
   useEffect(() => {
@@ -87,45 +86,26 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // OCR function
-  // Inside Navbar.js
-
-// OCR function
-const handleImageCaptured = async (file) => {
-  if (!file) return;
-  try {
+  // 📌 CAMERA IMAGE → OCR → SEARCH BAR
+  const handleImageOCR = async (file) => {
     setLoading(true);
-    const detectedText = await extractTextFromImage(file);
-
-    if (!detectedText) {
-      alert("No text detected. Try clearer handwriting or better lighting.");
-      return;
-    }
-
-    // Only set query if meaningful text is detected
-    setQuery(detectedText);
-
-    // Trigger search
-    handleSearch(new Event("submit"));
-  } catch (error) {
-    console.error("OCR failed:", error);
-    alert("Failed to read handwritten text. Try clearer handwriting or better lighting.");
-  } finally {
+    const text = await extractTextFromImage(file);
+    setQuery(text);
     setLoading(false);
-  }
-};
 
+    if (text.trim() !== "") {
+      navigate(`/search?query=${encodeURIComponent(text)}`);
+    }
+  };
 
   return (
     <header className={`bg-white fixed top-0 right-0 left-0 z-50 ${isScrolled ? 'shadow-lg' : ''}`}>
       <nav className='max-w-[1400px] md:h-[14vh] mx-auto px-10 flex h-[12vh] justify-between items-center'>
         
-        {/* Logo */}
         <Link to='/' className='text-3xl font-bold'>
           Cr<span className='text-rose-500'>乇</span>me
         </Link>
 
-        {/* Desktop Menu */}
         <ul className='md:flex items-center gap-x-15 hidden'>
           <NavLink to="/" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
           <NavLink to="/About" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
@@ -133,13 +113,14 @@ const handleImageCaptured = async (file) => {
           <NavLink to="/Contact" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
         </ul>
 
-        {/* Search + Icons */}
         <div className='flex items-center gap-x-5 relative'>
           
           {/* Desktop Search */}
           <div className='md:flex p-1 border-2 border-rose-500 rounded-full hidden items-center gap-x-2 relative'>
+            
+            {/* CAMERA → OCR */}
             <button
-              onClick={() => triggerCamera(cameraInputRef, handleImageCaptured)}
+              onClick={() => triggerCamera(cameraInputRef, handleImageOCR)}
               className='text-2xl text-rose-500 cursor-pointer p-1 flex items-center justify-center'
             >
               <TbCameraSearch />
@@ -158,7 +139,6 @@ const handleImageCaptured = async (file) => {
               <IoSearch />
             </button>
 
-            {/* Suggestions */}
             {suggestions.length > 0 && (
               <ul className='absolute top-full left-0 mt-2 bg-white shadow-lg rounded-lg w-64 max-h-60 overflow-auto z-50'>
                 {suggestions.map(item => (
@@ -172,16 +152,8 @@ const handleImageCaptured = async (file) => {
                 ))}
               </ul>
             )}
-
-            {/* OCR debug message */}
-            {ocrDebug && (
-              <p className="absolute left-0 top-full mt-1 text-gray-500 text-sm z-50">
-                {ocrDebug}
-              </p>
-            )}
           </div>
 
-          {/* Wishlist */}
           <NavLink to="/Wishlist" className="relative text-zinc-800 text-2xl">
             <GoHeartFill className={clsx("transition-transform duration-300", animateWishlist && "scale-125")} />
             {wishlistCount > 0 && (
@@ -191,7 +163,6 @@ const handleImageCaptured = async (file) => {
             )}
           </NavLink>
 
-          {/* Cart */}
           <NavLink to="/Cart" className="relative text-zinc-800 text-2xl">
             <HiShoppingBag className={clsx("transition-transform duration-300", animateCart && "scale-125")} />
             {cartCount > 0 && (
@@ -201,27 +172,31 @@ const handleImageCaptured = async (file) => {
             )}
           </NavLink>
 
-          {/* Hamburger */}
           <a href="#" onClick={toggleMenu} className='text-zinc-800 text-3xl md:hidden'>
             {showMenu ? <TbMenu3 /> : <TbMenu2 />}
           </a>
         </div>
 
         {/* Mobile Menu */}
-        <ul className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center gap-x-15 md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}>
-          <NavLink to="/" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
-          <NavLink to="/About" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
-          <NavLink to="/Process" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Process</NavLink>
-          <NavLink to="/Contact" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
+        <ul
+          className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center gap-x-15 md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}
+        >
+          <NavLink to="/" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
+          <NavLink to="/About" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
+          <NavLink to="/Process" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Process</NavLink>
+          <NavLink to="/Contact" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
 
-          {/* Mobile Search */}
           <li className='flex p-1 border-2 border-rose-500 rounded-full md:hidden relative w-full'>
             <button
-              onClick={() => triggerCamera(cameraInputRef, handleImageCaptured)}
+              onClick={() => {
+                setShowMenu(false);
+                triggerCamera(cameraInputRef, handleImageOCR);
+              }}
               className='text-2xl text-rose-500 p-1 flex items-center justify-center'
             >
               <TbCameraSearch />
             </button>
+
             <input
               type="text"
               value={query}
@@ -230,20 +205,20 @@ const handleImageCaptured = async (file) => {
               autoComplete='off'
               className='flex-1 h-[5vh] px-3 focus:outline-none rounded-full'
             />
-            <button onClick={handleSearch} className='bg-gradient-to-b from-rose-400 to-rose-500 text-white w-10 h-10 rounded-full flex justify-center items-center text-xl'>
+
+            <button
+              onClick={(e) => {
+                setShowMenu(false);
+                handleSearch(e);
+              }}
+              className='bg-gradient-to-b from-rose-400 to-rose-500 text-white w-10 h-10 rounded-full flex justify-center items-center text-xl'
+            >
               <IoSearch />
             </button>
-
-            {/* OCR debug message */}
-            {ocrDebug && (
-              <p className="absolute left-0 top-full mt-1 text-gray-500 text-sm z-50">
-                {ocrDebug}
-              </p>
-            )}
           </li>
         </ul>
 
-        {/* Hidden file input for camera */}
+        {/* Hidden Camera Input */}
         <input
           type="file"
           accept="image/*"
@@ -251,14 +226,16 @@ const handleImageCaptured = async (file) => {
           ref={cameraInputRef}
           style={{ display: "none" }}
         />
+
+        {/* OCR Loader */}
         {loading && (
-  <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-center items-center">
-    <div className="bg-white p-5 rounded-xl flex flex-col items-center gap-2 shadow-lg">
-      <p className="text-gray-800 font-medium">Processing image...</p>
-      <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
-    </div>
-  </div>
-)}
+          <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-center items-center">
+            <div className="bg-white p-5 rounded-xl flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-gray-800 font-medium">Processing image...</p>
+              <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          </div>
+        )}
 
       </nav>
     </header>
