@@ -7,7 +7,9 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import ProductList from '../ProductList/ProductList';
 import clsx from 'clsx';
 import { triggerCamera } from '../CameraAccess/CameraAccess';
-import { extractTextFromImage } from '../visionOCR/visionOCR';   // <-- OCR IMPORT
+import { extractTextFromBase64 } from "../visionOCR/visionOCR";
+import Cropper from "react-easy-crop";
+
 
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -18,26 +20,27 @@ const Navbar = () => {
   const [cartCount, setCartCount] = useState(0);
   const [animateWishlist, setAnimateWishlist] = useState(false);
   const [animateCart, setAnimateCart] = useState(false);
-  const [loading, setLoading] = useState(false);  // <-- Loader for OCR
+  const [loading, setLoading] = useState(false);
+
+  const [showCropper, setShowCropper] = useState(false);
+  const [rawFile, setRawFile] = useState(null);
+  const [rawImage, setRawImage] = useState(null);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   const navigate = useNavigate();
   const cameraInputRef = useRef();
 
   const toggleMenu = () => setShowMenu(!showMenu);
 
+  // Wishlist & Cart counts
   const updateWishlistCount = () => {
     const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
     setWishlistCount(wishlist.length);
     setAnimateWishlist(true);
     setTimeout(() => setAnimateWishlist(false), 300);
   };
-
-  useEffect(() => {
-    updateWishlistCount();
-    const sync = () => updateWishlistCount();
-    window.addEventListener("wishlistUpdated", sync);
-    return () => window.removeEventListener("wishlistUpdated", sync);
-  }, []);
 
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
@@ -47,16 +50,25 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    updateWishlistCount();
+    const sync = () => updateWishlistCount();
+    window.addEventListener("wishlistUpdated", sync);
+    return () => window.removeEventListener("wishlistUpdated", sync);
+  }, []);
+
+  useEffect(() => {
     updateCartCount();
     const sync = () => updateCartCount();
     window.addEventListener("cartUpdated", sync);
     return () => window.removeEventListener("cartUpdated", sync);
   }, []);
 
+  // Search handlers
   const handleSearch = (e) => {
     e?.preventDefault();
     if (query.trim() !== '') {
       navigate(`/search?query=${encodeURIComponent(query)}`);
+      setQuery("");
       setSuggestions([]);
       setShowMenu(false);
     }
@@ -80,32 +92,98 @@ const Navbar = () => {
     setShowMenu(false);
   };
 
+  // Scroll effect
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // 📌 CAMERA IMAGE → OCR → SEARCH BAR
-  const handleImageOCR = async (file) => {
+  // Camera + OCR
+  const handleImageOCR = (file) => {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    setRawFile(file);
+    setRawImage(url);
+    setShowCropper(true);
+    setQuery(""); // clear search bar on new photo
+  };
+
+  const handleCropDone = async () => {
+    if (!croppedAreaPixels || !rawImage) return;
+    setShowCropper(false);
     setLoading(true);
-    const text = await extractTextFromImage(file);
+
+    const img = new Image();
+    img.src = rawImage;
+    await new Promise((r) => (img.onload = r));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = croppedAreaPixels.width;
+    canvas.height = croppedAreaPixels.height;
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      img,
+      croppedAreaPixels.x,
+      croppedAreaPixels.y,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height,
+      0,
+      0,
+      croppedAreaPixels.width,
+      croppedAreaPixels.height
+    );
+
+    const base64 = canvas.toDataURL("image/png");
+    const text = await extractTextFromBase64(base64);
+
     setQuery(text);
     setLoading(false);
 
     if (text.trim() !== "") {
       navigate(`/search?query=${encodeURIComponent(text)}`);
+      setQuery(""); // clear search bar after navigation
     }
   };
 
+  // ---------------- RENDER ----------------
   return (
     <header className={`bg-white fixed top-0 right-0 left-0 z-50 ${isScrolled ? 'shadow-lg' : ''}`}>
+      {/* Cropper Modal */}
+      {showCropper && rawImage && (
+        <div className="fixed inset-0 bg-black/40 z-[999] flex justify-center items-center">
+          <div className="bg-white rounded-xl p-4 shadow-xl relative">
+            <div className="w-[90vw] max-w-[350px] h-[350px] relative">
+              <Cropper
+                image={rawImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={4 / 1}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={(area, pixels) => setCroppedAreaPixels(pixels)}
+              />
+            </div>
+            <div className="flex justify-between mt-4">
+              <button onClick={() => setShowCropper(false)} className="px-4 py-2 bg-gray-300 rounded-lg">
+                Cancel
+              </button>
+              <button onClick={handleCropDone} className="px-4 py-2 bg-rose-500 text-white rounded-lg">
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className='max-w-[1400px] md:h-[14vh] mx-auto px-10 flex h-[12vh] justify-between items-center'>
-        
+
         <Link to='/' className='text-3xl font-bold'>
           Cr<span className='text-rose-500'>乇</span>me
         </Link>
 
+        {/* Desktop Menu */}
         <ul className='md:flex items-center gap-x-15 hidden'>
           <NavLink to="/" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
           <NavLink to="/About" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
@@ -113,14 +191,16 @@ const Navbar = () => {
           <NavLink to="/Contact" className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
         </ul>
 
+        {/* Right Section */}
         <div className='flex items-center gap-x-5 relative'>
-          
-          {/* Desktop Search */}
+          {/* Desktop Search + Camera */}
           <div className='md:flex p-1 border-2 border-rose-500 rounded-full hidden items-center gap-x-2 relative'>
-            
-            {/* CAMERA → OCR */}
             <button
-              onClick={() => triggerCamera(cameraInputRef, handleImageOCR)}
+              onClick={() => {
+                setQuery("");
+                setSuggestions([]);
+                triggerCamera(cameraInputRef, handleImageOCR);
+              }}
               className='text-2xl text-rose-500 cursor-pointer p-1 flex items-center justify-center'
             >
               <TbCameraSearch />
@@ -154,6 +234,7 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* Wishlist & Cart */}
           <NavLink to="/Wishlist" className="relative text-zinc-800 text-2xl">
             <GoHeartFill className={clsx("transition-transform duration-300", animateWishlist && "scale-125")} />
             {wishlistCount > 0 && (
@@ -179,17 +260,20 @@ const Navbar = () => {
 
         {/* Mobile Menu */}
         <ul
-          className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center gap-x-15 md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}
+          className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}
         >
           <NavLink to="/" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
           <NavLink to="/About" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
           <NavLink to="/Process" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Process</NavLink>
           <NavLink to="/Contact" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
 
-          <li className='flex p-1 border-2 border-rose-500 rounded-full md:hidden relative w-full'>
+          {/* Mobile Search + Camera */}
+          <li className='flex p-1 border-2 border-rose-500 rounded-full relative w-full'>
             <button
               onClick={() => {
                 setShowMenu(false);
+                setQuery("");
+                setSuggestions([]);
                 triggerCamera(cameraInputRef, handleImageOCR);
               }}
               className='text-2xl text-rose-500 p-1 flex items-center justify-center'

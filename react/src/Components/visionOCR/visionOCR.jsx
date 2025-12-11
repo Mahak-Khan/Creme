@@ -1,20 +1,14 @@
-import Tesseract from "tesseract.js";
+  import Tesseract from "tesseract.js";
 
-export const extractTextFromImage = async (file) => {
-  if (!file) return "";
+  // Named export for OCR
+  export const extractTextFromBase64 = async (imageBase64) => {
+    const { data } = await Tesseract.recognize(imageBase64, "eng", {
+      logger: (m) => console.log(m),
+      tessedit_pageseg_mode: "7",
+    });
+    return data.text.trim();
+  };
 
-  return new Promise((resolve) => {
-    Tesseract.recognize(file, "eng", {
-      logger: (m) => console.log(m), // progress in console
-    })
-      .then(({ data }) => {
-        const finalText = data.text.trim();
-        resolve(finalText);
-      })
-      .catch((err) => {
-        console.error("OCR Error:", err);
-        resolve("");
-      });
-  });
-};
-  
+  // Keep VisionOCR component if needed
+  const VisionOCR = () => null;
+  export default VisionOCR;
