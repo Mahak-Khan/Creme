@@ -4,7 +4,7 @@ import Donut from '../../Assets/Donut.png'
 import ChocolatePastery from '../../Assets/Chocolate Pastery.png'
 import StrawberryPastery from '../../Assets/Strawberry Pastery.png'
 import ChocoCookie from '../../Assets/Choco Cookie.png'
-import FruitCakeCake from '../../Assets/Fruit Cake.png'
+import FruitCake from '../../Assets/Fruit Cake.png'
 import FruitPastery from '../../Assets/Fruit Pastery.png'
 import ChocoPastery from '../../Assets/Choco Pastery.png'
 import SweetBun from '../../Assets/Sweet Bun.png'
@@ -16,7 +16,6 @@ import ChocoBread from '../../Assets/Choco Bread.png'
 import BrownCookie from '../../Assets/Brown Cookie.png'
 import RedVelvetCake from '../../Assets/Red Velvet Cake.png'
 import CheeseBun from '../../Assets/Cheese Bun.png'
-import FruitCake from '../../Assets/Fruit Cake.png'
 import ButterBun from '../../Assets/Butter Bun.png'
 import SquareCookie from '../../Assets/Square Cookie.png'
 import BrownBread from '../../Assets/Brown Bread.png'
@@ -70,10 +69,10 @@ const products = [
     },
     {
         id: 7,
-        name: 'Fruit Cake Cake',
+        name: 'Fruit Cake',
         price: 400,
         category: 'Cakes',
-        image: FruitCakeCake
+        image: FruitCake
     },
     {
         id: 8,
@@ -151,13 +150,6 @@ const products = [
         price: 55,
         category: 'Breads',
         image:CheeseBun
-    },
-    {
-        id: 19,
-        name: 'Fruit Cake',
-        price: 350,
-        category: 'Cakes',
-        image: FruitCake
     },
     {
         id: 20,

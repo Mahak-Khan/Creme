@@ -3,8 +3,39 @@ import Cropper from "react-easy-crop";
 import { extractTextFromBase64 } from "../visionOCR/visionOCR";
 import { useNavigate } from "react-router-dom";
 import { TbCameraSearch } from "react-icons/tb";
+import Typo from "typo-js"; // <-- SPELL CHECKER
 
-// ⭐ Utility function used by Navbar
+// ---------------- CLEAN + AUTO-CORRECT FUNCTION ----------------
+const dictionary = new Typo("en_US");
+
+const autoCorrect = (text) => {
+  if (!text) return "";
+
+  let cleaned = text
+    // Remove weird OCR symbols: @ # ! : ; . , etc
+    .replace(/[^a-zA-Z0-9\s-]/g, "")
+    // Fix single-letter splits: "c o o k i e" → "cookie"
+    .replace(/(\b[a-z])(?:\s+(?=[a-z]\b))+/g, (match) =>
+      match.replace(/\s+/g, "")
+    )
+    // Fix two-letter splits: "c oo kie" → "cookie"
+    .replace(/\b([a-zA-Z])\s+([a-zA-Z])\b/g, "$1$2")
+    // Fix hyphen breaks: "cho- colate" → "chocolate"
+    .replace(/([a-zA-Z]+)-\s*([a-zA-Z]+)/g, "$1$2");
+
+  return cleaned
+    .split(/\s+/)
+    .map((word) => {
+      if (!word || word.length < 2) return word;
+      if (dictionary.check(word)) return word;
+
+      const suggestion = dictionary.suggest(word);
+      return suggestion.length > 0 ? suggestion[0] : word;
+    })
+    .join(" ");
+};
+
+// ---------------- CAMERA TRIGGER ----------------
 export const triggerCamera = (ref, callback) => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("Camera not supported on this device!");
@@ -26,30 +57,29 @@ const CameraAccess = ({ onResult }) => {
   const cameraInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // When Navbar triggers camera → we receive file here
+  // When navbar triggers camera
   const startImageCapture = (file) => {
     setRawFile(file);
     setShowCropper(true);
   };
 
-  // Load preview
+  // Show preview
   useEffect(() => {
     if (!rawFile) return;
     const url = URL.createObjectURL(rawFile);
     setRawImage(url);
   }, [rawFile]);
 
-  // ⭐ Cropper Variables
+  // Cropper states
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedPixels, setCroppedPixels] = useState(null);
 
-  // ⭐ Convert cropped area to Base64
+  // Convert cropped area to Base64
   const generateCroppedImage = async () => {
     const img = new Image();
     img.src = rawImage;
     await new Promise((r) => (img.onload = r));
-
     const canvas = document.createElement("canvas");
     canvas.width = croppedPixels.width;
     canvas.height = croppedPixels.height;
@@ -70,22 +100,26 @@ const CameraAccess = ({ onResult }) => {
     return canvas.toDataURL("image/png");
   };
 
-  // ⭐ When user clicks Done (Crop)
+  // When user clicks DONE
   const handleCropDone = async () => {
     if (!croppedPixels) return;
-
     setShowCropper(false);
     setLoading(true);
 
     const base64 = await generateCroppedImage();
-    const text = await extractTextFromBase64(base64);
+
+    // 1️⃣ OCR Raw Text
+    const rawText = await extractTextFromBase64(base64);
+
+    // 2️⃣ Clean + Auto Correct
+    const correctedText = autoCorrect(rawText);
 
     setLoading(false);
 
-    if (onResult) onResult(text); // send result back to Navbar
+    if (onResult) onResult(correctedText);
 
-    if (text.trim() !== "") {
-      navigate(`/search?query=${encodeURIComponent(text)}`);
+    if (correctedText.trim() !== "") {
+      navigate(`/search?query=${encodeURIComponent(correctedText)}`);
     }
   };
 
@@ -101,7 +135,7 @@ const CameraAccess = ({ onResult }) => {
         onChange={(e) => startImageCapture(e.target.files[0])}
       />
 
-      {/* Optional: button to open camera (if you want to use CameraAccess directly somewhere) */}
+      {/* Camera Button */}
       <button
         onClick={() => triggerCamera(cameraInputRef, startImageCapture)}
         className="text-2xl text-rose-500"
@@ -109,7 +143,7 @@ const CameraAccess = ({ onResult }) => {
         <TbCameraSearch />
       </button>
 
-      {/* ⭐ Cropper Modal */}
+      {/* Cropper Modal */}
       {showCropper && rawImage && (
         <div className="fixed inset-0 bg-black/40 z-[999] flex justify-center items-center">
           <div className="bg-white rounded-xl p-4 shadow-xl relative">

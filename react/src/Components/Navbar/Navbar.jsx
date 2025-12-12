@@ -9,8 +9,33 @@ import clsx from 'clsx';
 import { triggerCamera } from '../CameraAccess/CameraAccess';
 import { extractTextFromBase64 } from "../visionOCR/visionOCR";
 import Cropper from "react-easy-crop";
+import Typo from "typo-js";  // SPELL CHECKER
 
+// ---------------- SPELL CHECKER ----------------
+const dictionary = new Typo("en_US");
 
+// Clean + auto-correct OCR/fuzzy search
+const autoCorrect = (text) => {
+  if (!text) return "";
+
+  let cleaned = text
+    .replace(/[^a-zA-Z0-9\s-]/g, "") // Remove weird OCR symbols
+    .replace(/(\b[a-z])(?:\s+(?=[a-z]\b))+/g, (match) => match.replace(/\s+/g, "")) // single-letter splits
+    .replace(/\b([a-zA-Z])\s+([a-zA-Z])\b/g, "$1$2") // two-letter splits
+    .replace(/([a-zA-Z]+)-\s*([a-zA-Z]+)/g, "$1$2"); // hyphen splits
+
+  return cleaned
+    .split(/\s+/)
+    .map(word => {
+      if (!word || word.length < 2) return word;
+      if (dictionary.check(word)) return word;
+      const suggestions = dictionary.suggest(word);
+      return suggestions.length > 0 ? suggestions[0] : word;
+    })
+    .join(" ");
+};
+
+// ---------------- NAVBAR ----------------
 const Navbar = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -41,7 +66,6 @@ const Navbar = () => {
     setAnimateWishlist(true);
     setTimeout(() => setAnimateWishlist(false), 300);
   };
-
   const updateCartCount = () => {
     const cart = JSON.parse(localStorage.getItem("cart")) || [];
     setCartCount(cart.length);
@@ -55,7 +79,6 @@ const Navbar = () => {
     window.addEventListener("wishlistUpdated", sync);
     return () => window.removeEventListener("wishlistUpdated", sync);
   }, []);
-
   useEffect(() => {
     updateCartCount();
     const sync = () => updateCartCount();
@@ -63,7 +86,7 @@ const Navbar = () => {
     return () => window.removeEventListener("cartUpdated", sync);
   }, []);
 
-  // Search handlers
+  // ---------------- SEARCH ----------------
   const handleSearch = (e) => {
     e?.preventDefault();
     if (query.trim() !== '') {
@@ -79,9 +102,14 @@ const Navbar = () => {
     setQuery(value);
     if (!value) return setSuggestions([]);
 
-    const filtered = ProductList.filter(p =>
-      p.name.toLowerCase().includes(value.toLowerCase())
-    );
+    const lowered = value.toLowerCase();
+
+    // FUZZY SEARCH: match 2-3 letters and auto-correct
+    const filtered = ProductList.filter(p => {
+      const name = autoCorrect(p.name).toLowerCase();
+      return name.includes(lowered) || lowered.split("").some(l => name.includes(l));
+    });
+
     setSuggestions(filtered.slice(0, 5));
   };
 
@@ -92,14 +120,14 @@ const Navbar = () => {
     setShowMenu(false);
   };
 
-  // Scroll effect
+  // ---------------- SCROLL EFFECT ----------------
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Camera + OCR
+  // ---------------- CAMERA + OCR ----------------
   const handleImageOCR = (file) => {
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -116,7 +144,7 @@ const Navbar = () => {
 
     const img = new Image();
     img.src = rawImage;
-    await new Promise((r) => (img.onload = r));
+    await new Promise(r => img.onload = r);
 
     const canvas = document.createElement("canvas");
     canvas.width = croppedAreaPixels.width;
@@ -136,14 +164,15 @@ const Navbar = () => {
     );
 
     const base64 = canvas.toDataURL("image/png");
-    const text = await extractTextFromBase64(base64);
+    const rawText = await extractTextFromBase64(base64);
+    const correctedText = autoCorrect(rawText);
 
-    setQuery(text);
+    setQuery(correctedText);
     setLoading(false);
 
-    if (text.trim() !== "") {
-      navigate(`/search?query=${encodeURIComponent(text)}`);
-      setQuery(""); // clear search bar after navigation
+    if (correctedText.trim() !== "") {
+      navigate(`/search?query=${encodeURIComponent(correctedText)}`);
+      setQuery("");
     }
   };
 
@@ -258,16 +287,13 @@ const Navbar = () => {
           </a>
         </div>
 
-        {/* Mobile Menu */}
-        <ul
-          className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}
-        >
+        {/* Mobile Menu + Search */}
+        <ul className={`flex flex-col gap-y-12 bg-rose-500/15 backdrop-blur-xl shadow-xl rounded-xl p-10 items-center md:hidden absolute top-30 -left-full transform -translate-x-1/2 transition-all duration-500 ${showMenu ? 'left-1/2' : ''}`}>
           <NavLink to="/" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Home</NavLink>
           <NavLink to="/About" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>About</NavLink>
           <NavLink to="/Process" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Process</NavLink>
           <NavLink to="/Contact" onClick={() => setShowMenu(false)} className={({ isActive }) => `font-semibold tracking-wider ${isActive ? 'text-rose-500' : 'text-zinc-800'} hover:text-rose-500`}>Contact Us</NavLink>
 
-          {/* Mobile Search + Camera */}
           <li className='flex p-1 border-2 border-rose-500 rounded-full relative w-full'>
             <button
               onClick={() => {
@@ -311,7 +337,7 @@ const Navbar = () => {
           style={{ display: "none" }}
         />
 
-        {/* OCR Loader */}
+        {/* Loader */}
         {loading && (
           <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-center items-center">
             <div className="bg-white p-5 rounded-xl flex flex-col items-center gap-2 shadow-lg">
@@ -320,7 +346,6 @@ const Navbar = () => {
             </div>
           </div>
         )}
-
       </nav>
     </header>
   );
