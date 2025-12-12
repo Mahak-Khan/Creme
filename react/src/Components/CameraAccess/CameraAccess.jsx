@@ -3,9 +3,8 @@ import Cropper from "react-easy-crop";
 import { extractTextFromBase64 } from "../visionOCR/visionOCR";
 import { useNavigate } from "react-router-dom";
 import { TbCameraSearch } from "react-icons/tb";
-import Fuse from "fuse.js";  // <-- new
+import Fuse from "fuse.js";
 
-// ---------------- CAMERA TRIGGER ----------------
 export const triggerCamera = (ref, callback) => {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     alert("Camera not supported on this device!");
@@ -16,9 +15,6 @@ export const triggerCamera = (ref, callback) => {
     if (e.target.files[0]) callback(e.target.files[0]);
   };
 };
-
-// ---------------- FUZZY SEARCH SETUP ----------------
-// We'll initialize Fuse when needed. You can pass ProductList later in search page.
 
 const CameraAccess = ({ onResult, productList }) => {
   const [showCropper, setShowCropper] = useState(false);
@@ -75,25 +71,20 @@ const CameraAccess = ({ onResult, productList }) => {
     setLoading(true);
 
     const base64 = await generateCroppedImage();
-
-    // 1️⃣ OCR Raw Text
     const rawText = await extractTextFromBase64(base64);
 
-    // 2️⃣ Fuzzy search using Fuse.js
     let matchedText = rawText;
     if (productList && productList.length > 0) {
       const fuse = new Fuse(productList, {
         keys: ["name"],
-        includeScore: true,
-        threshold: 0.5, // 0.0 = exact, 1.0 = very loose
-        minMatchCharLength: 2, // match minimum 2 letters
+        threshold: 0.5,
+        minMatchCharLength: 2,
       });
       const results = fuse.search(rawText);
       if (results.length > 0) matchedText = results[0].item.name;
     }
 
     setLoading(false);
-
     if (onResult) onResult(matchedText);
 
     if (matchedText.trim() !== "") {
@@ -103,7 +94,6 @@ const CameraAccess = ({ onResult, productList }) => {
 
   return (
     <>
-      {/* Hidden file input for camera */}
       <input
         ref={cameraInputRef}
         type="file"
@@ -113,7 +103,6 @@ const CameraAccess = ({ onResult, productList }) => {
         onChange={(e) => startImageCapture(e.target.files[0])}
       />
 
-      {/* Camera Button */}
       <button
         onClick={() => triggerCamera(cameraInputRef, startImageCapture)}
         className="text-2xl text-rose-500"
@@ -121,7 +110,6 @@ const CameraAccess = ({ onResult, productList }) => {
         <TbCameraSearch />
       </button>
 
-      {/* Cropper Modal */}
       {showCropper && rawImage && (
         <div className="fixed inset-0 bg-black/40 z-[999] flex justify-center items-center">
           <div className="bg-white rounded-xl p-4 shadow-xl relative">
@@ -146,7 +134,6 @@ const CameraAccess = ({ onResult, productList }) => {
               >
                 Cancel
               </button>
-
               <button
                 onClick={handleCropDone}
                 className="px-4 py-2 bg-rose-500 text-white rounded-lg"
@@ -158,7 +145,6 @@ const CameraAccess = ({ onResult, productList }) => {
         </div>
       )}
 
-      {/* Loader */}
       {loading && (
         <div className="fixed inset-0 bg-black/40 z-[999] flex justify-center items-center">
           <div className="bg-white p-5 rounded-xl shadow-lg flex flex-col items-center gap-2">

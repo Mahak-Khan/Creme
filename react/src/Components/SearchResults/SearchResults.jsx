@@ -1,40 +1,41 @@
-import React from 'react';
-import { useLocation } from 'react-router-dom';
-import ProductList from '../ProductList/ProductList';
-import Cards from '../Cards/Cards';
-import Heading from '../Heading/Heading';
-import Fuse from 'fuse.js';
+import React from "react";
+import { useLocation } from "react-router-dom";
+import Fuse from "fuse.js";
+import ProductList from "../ProductList/ProductList";
+import Cards from "../Cards/Cards";
+import Heading from "../Heading/Heading";
 
 const SearchResults = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
-  const query = queryParams.get('query') || '';
+  const query = queryParams.get("query") || "";
 
-  // 🔹 Fuse.js setup for fuzzy search
   const fuse = new Fuse(ProductList, {
-    keys: ['name'],
+    keys: ["name"],
     includeMatches: true,
-    threshold: 0.5, // adjust for sensitivity
-    minMatchCharLength: 2, // minimum consecutive characters to match
+    threshold: 0.5,
+    minMatchCharLength: 2,
   });
 
   const fuseResults = query ? fuse.search(query) : [];
-  const filteredProducts = fuseResults.map(result => ({
+  const filteredProducts = fuseResults.map((result) => ({
     ...result.item,
     matches: result.matches,
   }));
 
-  // 🔹 Function to highlight matched letters
   const highlightMatch = (name, matches) => {
     if (!matches || matches.length === 0) return name;
 
-    let result = '';
+    let result = "";
     let lastIndex = 0;
 
-    matches.forEach(match => {
+    matches.forEach((match) => {
       match.indices.forEach(([start, end]) => {
         result += name.slice(lastIndex, start);
-        result += `<span class="bg-yellow-300">${name.slice(start, end + 1)}</span>`;
+        result += `<span class="bg-red-300 text-black px-1 rounded">${name.slice(
+          start,
+          end + 1
+        )}</span>`;
         lastIndex = end + 1;
       });
     });
@@ -45,17 +46,16 @@ const SearchResults = () => {
 
   return (
     <section>
-      <div className='max-w-[1400px] mx-auto px-10 py-20'>
+      <div className="max-w-[1400px] mx-auto px-10 py-20">
         <Heading highlight="Search" heading={`Results for "${query}"`} />
 
         {filteredProducts.length > 0 ? (
-          <div className='grid grid-cols-1 md:grid-cols-4 gap-9 mt-10'>
-            {filteredProducts.map(product => (
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-9 mt-10">
+            {filteredProducts.map((product) => (
               <Cards
                 key={product.id}
                 image={product.image}
                 price={product.price}
-                // 🔹 Highlight matched letters
                 name={
                   <span
                     dangerouslySetInnerHTML={{
@@ -67,7 +67,7 @@ const SearchResults = () => {
             ))}
           </div>
         ) : (
-          <p className='text-center mt-10 text-xl'>No products found.</p>
+          <p className="text-center mt-10 text-xl">No products found.</p>
         )}
       </div>
     </section>
