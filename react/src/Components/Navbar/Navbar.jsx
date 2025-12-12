@@ -21,7 +21,7 @@ const Navbar = () => {
   const [animateWishlist, setAnimateWishlist] = useState(false);
   const [animateCart, setAnimateCart] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [rotation, setRotation] = useState(0);
   const [showCropper, setShowCropper] = useState(false);
   const [rawImage, setRawImage] = useState(null);
   const [crop, setCrop] = useState({ x: 0, y: 0 });
@@ -160,7 +160,7 @@ const Navbar = () => {
 
   return (
     <header className={`bg-white fixed top-0 right-0 left-0 z-50 ${isScrolled ? 'shadow-lg' : ''}`}>
-      
+
       {/* Cropper Modal */}
       {showCropper && rawImage && (
         <div className="fixed inset-0 bg-black/40 z-[999] flex justify-center items-center">
@@ -170,6 +170,7 @@ const Navbar = () => {
                 image={rawImage}
                 crop={crop}
                 zoom={zoom}
+                rotation={rotation}   // ✅ Rotation applied
                 aspect={4 / 1}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
@@ -177,16 +178,43 @@ const Navbar = () => {
               />
             </div>
 
+            {/* Rotation Buttons */}
+            <div className="flex justify-center gap-4 mt-4">
+              <button
+                onClick={() => setRotation((prev) => prev - 90)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Rotate Left
+              </button>
+              <button
+                onClick={() => setRotation((prev) => prev + 90)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Rotate Right
+              </button>
+            </div>
+
             <div className="flex justify-between mt-4">
-              <button onClick={() => setShowCropper(false)} className="px-4 py-2 bg-gray-300 rounded-lg">Cancel</button>
-              <button onClick={handleCropDone} className="px-4 py-2 bg-rose-500 text-white rounded-lg">Done</button>
+              <button
+                onClick={() => setShowCropper(false)}
+                className="px-4 py-2 bg-gray-300 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCropDone}
+                className="px-4 py-2 bg-rose-500 text-white rounded-lg"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
       )}
 
+
       <nav className='max-w-[1400px] md:h-[14vh] mx-auto px-10 flex h-[12vh] justify-between items-center'>
-        
+
         <Link to='/' className='text-3xl font-bold'>
           Cr<span className='text-rose-500'>乇</span>me
         </Link>
@@ -312,10 +340,10 @@ const Navbar = () => {
 
         {/* Loader */}
         {loading && (
-          <div className="fixed inset-0 bg-black/40 z-50 flex flex-col justify-center items-center">
-            <div className="bg-white p-5 rounded-xl shadow-lg">
-              <p className="text-gray-800 font-medium">Processing image...</p>
-              <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin mt-2"></div>
+          <div className="fixed inset-0 bg-black/40 z-50 flex justify-center items-center">
+            <div className="bg-white p-5 rounded-xl flex flex-col items-center gap-2 shadow-lg">
+              <p className="text-gray-800 font-medium text-center">Processing image...</p>
+              <div className="w-10 h-10 border-4 border-rose-500 border-t-transparent rounded-full animate-spin"></div>
             </div>
           </div>
         )}
