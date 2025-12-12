@@ -3,46 +3,45 @@ import { useLocation } from 'react-router-dom';
 import ProductList from '../ProductList/ProductList';
 import Cards from '../Cards/Cards';
 import Heading from '../Heading/Heading';
-
-// ---------------- Fuzzy Match & Highlight ----------------
-const getMatchedIndexes = (name, query) => {
-  const nameLower = name.toLowerCase();
-  const queryLower = query.toLowerCase();
-  const minMatchLength = 2;
-  const matched = Array(name.length).fill(false);
-
-  for (let len = Math.min(nameLower.length, queryLower.length); len >= minMatchLength; len--) {
-    for (let i = 0; i <= nameLower.length - len; i++) {
-      const nameSub = nameLower.substr(i, len);
-      for (let j = 0; j <= queryLower.length - len; j++) {
-        const querySub = queryLower.substr(j, len);
-        if (nameSub === querySub) {
-          for (let k = 0; k < len; k++) matched[i + k] = true;
-        }
-      }
-    }
-  }
-  return matched;
-};
-
-const highlightMatch = (name, query) => {
-  const matchedIndexes = getMatchedIndexes(name, query);
-  return name.split('').map((char, idx) => (
-    <span key={idx} className={matchedIndexes[idx] ? 'text-rose-500' : ''}>
-      {char}
-    </span>
-  ));
-};
+import Fuse from 'fuse.js';
 
 const SearchResults = () => {
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const query = queryParams.get('query') || '';
 
-  // Fuzzy filter products
-  const filteredProducts = ProductList.filter(product =>
-    getMatchedIndexes(product.name, query).some(Boolean)
-  );
+  // 🔹 Fuse.js setup for fuzzy search
+  const fuse = new Fuse(ProductList, {
+    keys: ['name'],
+    includeMatches: true,
+    threshold: 0.5, // adjust for sensitivity
+    minMatchCharLength: 2, // minimum consecutive characters to match
+  });
+
+  const fuseResults = query ? fuse.search(query) : [];
+  const filteredProducts = fuseResults.map(result => ({
+    ...result.item,
+    matches: result.matches,
+  }));
+
+  // 🔹 Function to highlight matched letters
+  const highlightMatch = (name, matches) => {
+    if (!matches || matches.length === 0) return name;
+
+    let result = '';
+    let lastIndex = 0;
+
+    matches.forEach(match => {
+      match.indices.forEach(([start, end]) => {
+        result += name.slice(lastIndex, start);
+        result += `<span class="bg-yellow-300">${name.slice(start, end + 1)}</span>`;
+        lastIndex = end + 1;
+      });
+    });
+
+    result += name.slice(lastIndex);
+    return result;
+  };
 
   return (
     <section>
@@ -55,8 +54,15 @@ const SearchResults = () => {
               <Cards
                 key={product.id}
                 image={product.image}
-                name={highlightMatch(product.name, query)}
                 price={product.price}
+                // 🔹 Highlight matched letters
+                name={
+                  <span
+                    dangerouslySetInnerHTML={{
+                      __html: highlightMatch(product.name, product.matches),
+                    }}
+                  />
+                }
               />
             ))}
           </div>

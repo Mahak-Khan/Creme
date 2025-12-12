@@ -3,37 +3,7 @@ import Cropper from "react-easy-crop";
 import { extractTextFromBase64 } from "../visionOCR/visionOCR";
 import { useNavigate } from "react-router-dom";
 import { TbCameraSearch } from "react-icons/tb";
-import Typo from "typo-js"; // <-- SPELL CHECKER
-
-// ---------------- CLEAN + AUTO-CORRECT FUNCTION ----------------
-const dictionary = new Typo("en_US");
-
-const autoCorrect = (text) => {
-  if (!text) return "";
-
-  let cleaned = text
-    // Remove weird OCR symbols: @ # ! : ; . , etc
-    .replace(/[^a-zA-Z0-9\s-]/g, "")
-    // Fix single-letter splits: "c o o k i e" → "cookie"
-    .replace(/(\b[a-z])(?:\s+(?=[a-z]\b))+/g, (match) =>
-      match.replace(/\s+/g, "")
-    )
-    // Fix two-letter splits: "c oo kie" → "cookie"
-    .replace(/\b([a-zA-Z])\s+([a-zA-Z])\b/g, "$1$2")
-    // Fix hyphen breaks: "cho- colate" → "chocolate"
-    .replace(/([a-zA-Z]+)-\s*([a-zA-Z]+)/g, "$1$2");
-
-  return cleaned
-    .split(/\s+/)
-    .map((word) => {
-      if (!word || word.length < 2) return word;
-      if (dictionary.check(word)) return word;
-
-      const suggestion = dictionary.suggest(word);
-      return suggestion.length > 0 ? suggestion[0] : word;
-    })
-    .join(" ");
-};
+import Fuse from "fuse.js";  // <-- new
 
 // ---------------- CAMERA TRIGGER ----------------
 export const triggerCamera = (ref, callback) => {
@@ -41,14 +11,16 @@ export const triggerCamera = (ref, callback) => {
     alert("Camera not supported on this device!");
     return;
   }
-
   ref.current.click();
   ref.current.onchange = (e) => {
     if (e.target.files[0]) callback(e.target.files[0]);
   };
 };
 
-const CameraAccess = ({ onResult }) => {
+// ---------------- FUZZY SEARCH SETUP ----------------
+// We'll initialize Fuse when needed. You can pass ProductList later in search page.
+
+const CameraAccess = ({ onResult, productList }) => {
   const [showCropper, setShowCropper] = useState(false);
   const [rawFile, setRawFile] = useState(null);
   const [rawImage, setRawImage] = useState(null);
@@ -57,29 +29,26 @@ const CameraAccess = ({ onResult }) => {
   const cameraInputRef = useRef(null);
   const navigate = useNavigate();
 
-  // When navbar triggers camera
   const startImageCapture = (file) => {
     setRawFile(file);
     setShowCropper(true);
   };
 
-  // Show preview
   useEffect(() => {
     if (!rawFile) return;
     const url = URL.createObjectURL(rawFile);
     setRawImage(url);
   }, [rawFile]);
 
-  // Cropper states
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
   const [croppedPixels, setCroppedPixels] = useState(null);
 
-  // Convert cropped area to Base64
   const generateCroppedImage = async () => {
     const img = new Image();
     img.src = rawImage;
     await new Promise((r) => (img.onload = r));
+
     const canvas = document.createElement("canvas");
     canvas.width = croppedPixels.width;
     canvas.height = croppedPixels.height;
@@ -100,7 +69,6 @@ const CameraAccess = ({ onResult }) => {
     return canvas.toDataURL("image/png");
   };
 
-  // When user clicks DONE
   const handleCropDone = async () => {
     if (!croppedPixels) return;
     setShowCropper(false);
@@ -111,15 +79,25 @@ const CameraAccess = ({ onResult }) => {
     // 1️⃣ OCR Raw Text
     const rawText = await extractTextFromBase64(base64);
 
-    // 2️⃣ Clean + Auto Correct
-    const correctedText = autoCorrect(rawText);
+    // 2️⃣ Fuzzy search using Fuse.js
+    let matchedText = rawText;
+    if (productList && productList.length > 0) {
+      const fuse = new Fuse(productList, {
+        keys: ["name"],
+        includeScore: true,
+        threshold: 0.5, // 0.0 = exact, 1.0 = very loose
+        minMatchCharLength: 2, // match minimum 2 letters
+      });
+      const results = fuse.search(rawText);
+      if (results.length > 0) matchedText = results[0].item.name;
+    }
 
     setLoading(false);
 
-    if (onResult) onResult(correctedText);
+    if (onResult) onResult(matchedText);
 
-    if (correctedText.trim() !== "") {
-      navigate(`/search?query=${encodeURIComponent(correctedText)}`);
+    if (matchedText.trim() !== "") {
+      navigate(`/search?query=${encodeURIComponent(matchedText)}`);
     }
   };
 
@@ -155,7 +133,9 @@ const CameraAccess = ({ onResult }) => {
                 aspect={4 / 1}
                 onCropChange={setCrop}
                 onZoomChange={setZoom}
-                onCropComplete={(area, pixels) => setCroppedPixels(pixels)}
+                onCropComplete={(area, pixels) =>
+                  setCroppedPixels(pixels)
+                }
               />
             </div>
 
